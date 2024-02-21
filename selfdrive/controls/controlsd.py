@@ -743,6 +743,7 @@ class Controls:
     self.FPCC.alwaysOnLateral &= self.always_on_lateral
     self.FPCC.alwaysOnLateral &= self.driving_gear
     self.FPCC.alwaysOnLateral &= signal_check
+    self.FPCC.alwaysOnLateral &= False
 
     if self.FPCC.alwaysOnLateral:
       self.current_alert_types.append(ET.WARNING)
