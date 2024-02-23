@@ -187,7 +187,7 @@ class Controls:
     self.vCruise69_alert_played = False
 
     self.previous_lead_distance = 0
-    self.previous_speed_limit = 0
+    self.previous_speed_limit = SpeedLimitController.desired_speed_limit
     self.random_event_timer = 0
 
     ignore = self.sensor_packets + ['testJoystick']
@@ -605,13 +605,27 @@ class Controls:
     # Speed limit changed alert
     if self.speed_limit_alert or self.speed_limit_confirmation:
       desired_speed_limit = frogpilot_plan.unconfirmedSlcSpeedLimit
-      speed_limit_changed = abs(desired_speed_limit - self.previous_speed_limit) > 1
+
+      speed_limit_difference = desired_speed_limit - self.previous_speed_limit
+      speed_limit_changed = abs(speed_limit_difference) > 1
+
+      speed_limit_changed_lower = speed_limit_difference < -1
+      speed_limit_changed_higher = speed_limit_difference > 1
 
       self.previous_speed_limit = desired_speed_limit
 
-      if speed_limit_changed and self.speed_limit_confirmation:
-        self.FPCC.speedLimitChanged = True
-      if self.params_memory.get_bool("SLCConfirmedPressed") or not self.speed_limit_confirmation:
+      if speed_limit_changed_lower:
+        if self.speed_limit_confirmation_lower:
+          self.FPCC.speedLimitChanged = True
+        else:
+          self.params_memory.put_bool("SLCConfirmedPressed", True)
+      if speed_limit_changed_higher:
+        if self.speed_limit_confirmation_higher:
+          self.FPCC.speedLimitChanged = True
+        else:
+          self.params_memory.put_bool("SLCConfirmedPressed", True)
+
+      if self.params_memory.get_bool("SLCConfirmedPressed") and not speed_limit_changed or not self.speed_limit_confirmation:
         self.FPCC.speedLimitChanged = False
         self.params_memory.put_bool("SLCConfirmedPressed", False)
 
@@ -1175,6 +1189,8 @@ class Controls:
     self.frogpilot_variables.set_speed_limit = self.params.get_bool("SetSpeedLimit") and self.speed_limit_controller
     self.speed_limit_alert = self.params.get_bool("SpeedLimitChangedAlert") and self.speed_limit_controller
     self.speed_limit_confirmation = self.params.get_bool("SLCConfirmation") and self.speed_limit_controller
+    self.speed_limit_confirmation_lower = self.params.get_bool("SLCConfirmationLower") and self.speed_limit_confirmation
+    self.speed_limit_confirmation_higher = self.params.get_bool("SLCConfirmationHigher") and self.speed_limit_confirmation
 
 def main():
   controls = Controls()

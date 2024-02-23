@@ -66,7 +66,7 @@ FrogPilotControlsPanel::FrogPilotControlsPanel(SettingsWindow *parent) : FrogPil
     {"SLCOverride", "Override Method", "Choose your preferred method to override the current speed limit.", ""},
     {"SLCPriority", "Priority Order", "Determine the priority order for what speed limits to use.", ""},
     {"SLCQOL", "Quality of Life Settings", "Manage quality of life settings.", ""},
-    {"SLCConfirmation", "Confirm Speed Limit Changes", "Don't automatically start using the new speed limit until it's been manually confirmed first.", ""},
+    {"SLCConfirmation", "Confirm New Speed Limits", "Don't automatically start using the new speed limit until it's been manually confirmed first.", ""},
     {"SetSpeedLimit", "Use Current Speed Limit As Set Speed", "Sets your max speed to the current speed limit if one is populated when you initially enable openpilot.", ""},
     {"SLCVisuals", "Visuals Settings", "Manage visual settings.", ""},
     {"ShowSLCOffset", "Show Speed Limit Offset", "Show the speed limit offset seperated from the speed limit in the onroad UI when using 'Speed Limit Controller'.", ""},
@@ -367,6 +367,10 @@ FrogPilotControlsPanel::FrogPilotControlsPanel(SettingsWindow *parent) : FrogPil
         }
       });
       toggle = manageSLCQOLToggle;
+    } else if (param == "SLCConfirmation") {
+      std::vector<QString> slcConfirmationToggles{"SLCConfirmationLower", "SLCConfirmationHigher"};
+      std::vector<QString> slcConfirmationNames{tr("Lower Limits"), tr("Higher Limits")};
+      toggle = new FrogPilotParamToggleControl(param, title, desc, icon, slcConfirmationToggles, slcConfirmationNames);
     } else if (param == "SLCVisuals") {
       FrogPilotParamManageControl *manageSLCVisualsToggle = new FrogPilotParamManageControl(param, title, desc, icon, this, true);
       QObject::connect(manageSLCVisualsToggle, &FrogPilotParamManageControl::manageButtonClicked, this, [this]() {

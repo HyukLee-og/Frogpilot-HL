@@ -180,6 +180,8 @@ def manager_init() -> None:
     ("ShowMemoryUsage", "1" if FrogsGoMoo else "0"),
     ("Sidebar", "1" if FrogsGoMoo else "0"),
     ("SLCConfirmation", "1"),
+    ("SLCConfirmationLower", "1"),
+    ("SLCConfirmationHigher", "0"),
     ("SLCFallback", "2"),
     ("SLCOverride", "1"),
     ("SLCPriority1", "Dashboard"),
