@@ -1610,26 +1610,17 @@ void AnnotatedCameraWidget::drawSLCConfirmation(QPainter &p) {
 
   // Configure the font
   p.setFont(InterFont(75, QFont::Bold));
-  p.setPen(Qt::black);
+  p.setPen(Qt::white);
 
   // Configure the text
   QString unitText = is_metric ? "kph" : "mph";
   QString speedText = QString::number(std::nearbyint(unconfirmedSLCSpeedLimit)) + " " + unitText;
+  QString confirmText = "Confirm speed limit\n" + speedText;
+  QString ignoreText = "Ignore speed limit\n" + speedText;
 
-  QStringList texts = {"Confirm speed limit", speedText, "Ignore speed limit", speedText};
-  QList<QRect> rects;
-
-  // Calculate positions and draw text with outlines
-  rects.append(leftRect.adjusted(0, 0, 0, -size.height() / 2));
-  rects.append(leftRect.adjusted(0, size.height() / 2, 0, 0));
-  rects.append(rightRect.adjusted(0, 0, 0, -size.height() / 2));
-  rects.append(rightRect.adjusted(0, size.height() / 2, 0, 0));
-
-  // Draw text with proper spacing
-  for (int i = 0; i < texts.size(); ++i) {
-    QRect rect = rects[i];
-    p.drawText(rect, Qt::AlignCenter, texts[i]);
-  }
+  // Draw the text
+  p.drawText(leftRect, Qt::AlignCenter | Qt::AlignTop, confirmText);
+  p.drawText(rightRect, Qt::AlignCenter | Qt::AlignTop, ignoreText);
 
   p.restore();
 }
