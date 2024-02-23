@@ -26,8 +26,10 @@ class ConditionalExperimentalMode:
     self.lead_stopping = False
     self.red_light_detected = False
     self.slower_lead_detected = False
+    self.v_ego_stopping = False
 
     self.previous_status_value = 0
+    self.previous_v_ego = 0
     self.previous_v_lead = 0
     self.status_value = 0
 
@@ -36,8 +38,12 @@ class ConditionalExperimentalMode:
     self.lead_slowing_down_mac = MovingAverageCalculator()
     self.slow_down_mac = MovingAverageCalculator()
     self.slow_lead_mac = MovingAverageCalculator()
+    self.stopping_mac = MovingAverageCalculator()
 
   def update(self, carState, enabled, frogpilotNavigation, modelData, mpc, radarState, road_curvature, stopping_distance, v_ego):
+    lead = radarState.leadOne
+    v_lead = lead.vLead
+
     # Set the value of "overridden"
     if self.experimental_mode_via_press:
       overridden = self.params_memory.get_int("CEStatus")
@@ -45,7 +51,7 @@ class ConditionalExperimentalMode:
       overridden = 0
 
     # Update Experimental Mode based on the current driving conditions
-    condition_met = self.check_conditions(carState, frogpilotNavigation, modelData, v_ego)
+    condition_met = self.check_conditions(carState, frogpilotNavigation, modelData, v_ego, v_lead)
     if ((not self.experimental_mode and condition_met and overridden not in (1, 3)) or overridden in (2, 4)) and enabled:
       self.experimental_mode = True
     elif (self.experimental_mode and not condition_met and overridden not in (2, 4)) or overridden in (1, 3) or not enabled:
@@ -58,12 +64,16 @@ class ConditionalExperimentalMode:
       self.params_memory.put_int("CEStatus", self.status_value)
       self.previous_status_value = self.status_value
 
-    self.update_conditions(modelData, mpc, radarState, road_curvature, stopping_distance, v_ego)
+    self.update_conditions(lead, modelData, mpc, radarState, road_curvature, stopping_distance, v_ego, v_lead)
 
   # Check conditions for the appropriate state of Experimental Mode
-  def check_conditions(self, carState, frogpilotNavigation, modelData, v_ego):
+  def check_conditions(self, carState, frogpilotNavigation, modelData, v_ego, v_lead):
     if carState.standstill:
       return self.experimental_mode
+
+    # Keep Experimental Mode active if slowing down for a red light
+    if self.v_ego_stopping and self.status_value == 13 and not v_lead <= 0:
+      return True
 
     # Navigation check
     if self.navigation and modelData.navEnabled and (frogpilotNavigation.approachingIntersection or frogpilotNavigation.approachingTurn) and (self.navigation_lead or not self.lead_detected):
@@ -102,19 +112,19 @@ class ConditionalExperimentalMode:
 
     return False
 
-  def update_conditions(self, modelData, mpc, radarState, road_curvature, stopping_distance, v_ego):
-    lead = radarState.leadOne
-    v_lead = lead.vLead
-
+  def update_conditions(self, lead, modelData, mpc, radarState, road_curvature, stopping_distance, v_ego, v_lead):
     self.lead_detection(lead)
     self.lead_slowing_down(lead, stopping_distance, v_lead)
     self.road_curvature(road_curvature)
     self.slow_lead(lead, mpc, v_ego, v_lead)
+    self.stopping(v_ego)
     self.stop_sign_and_light(modelData, v_ego)
 
   # Lead detection
   def lead_detection(self, lead):
-    self.lead_detection_mac.add_data(lead.status)
+    lead_status = lead.status
+
+    self.lead_detection_mac.add_data(lead_status)
     self.lead_detected = self.lead_detection_mac.get_moving_average() >= PROBABILITY
 
   def lead_slowing_down(self, lead, stopping_distance, v_lead):
@@ -131,6 +141,13 @@ class ConditionalExperimentalMode:
       self.lead_slowing_down_mac.reset_data()
       self.lead_stopping = False
       self.previous_v_lead = 0
+
+  def stopping(self, v_ego):
+    speed_decreasing = v_ego < self.previous_v_ego
+
+    self.stopping_mac.add_data(speed_decreasing)
+    self.v_ego_stopping = self.stopping_mac.get_moving_average() >= PROBABILITY
+    self.previous_v_ego = v_ego
 
   # Determine the road curvature - Credit goes to to Pfeiferj!
   def road_curvature(self, road_curvature):
@@ -150,7 +167,9 @@ class ConditionalExperimentalMode:
   # Slower lead detection - Credit goes to the DragonPilot team!
   def slow_lead(self, lead, mpc, v_ego, v_lead):
     if self.lead_detected:
-      self.slow_lead_mac.add_data(lead.dRel < (v_ego - 1) * mpc.t_follow)
+      slower_lead_ahead = lead.dRel < (v_ego - 1) * mpc.t_follow
+
+      self.slow_lead_mac.add_data(slower_lead_ahead)
       self.slower_lead_detected = self.slow_lead_mac.get_moving_average() >= PROBABILITY
     else:
       self.slow_lead_mac.reset_data()
