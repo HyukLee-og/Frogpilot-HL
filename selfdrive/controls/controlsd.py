@@ -1148,19 +1148,20 @@ class Controls:
     self.frogpilot_variables.conditional_experimental_mode = self.params.get_bool("ConditionalExperimental")
 
     custom_alerts = self.params.get_bool("CustomAlerts")
-    self.green_light_alert = self.params.get_bool("GreenLightAlert") and custom_alerts
-    self.lead_departing_alert = self.params.get_bool("LeadDepartingAlert") and custom_alerts
-    self.loud_blindspot_alert = self.params.get_bool("LoudBlindspotAlert") and custom_alerts
+    self.green_light_alert = custom_alerts and self.params.get_bool("GreenLightAlert")
+    self.lead_departing_alert = custom_alerts and self.params.get_bool("LeadDepartingAlert")
+    self.loud_blindspot_alert = custom_alerts and self.params.get_bool("LoudBlindspotAlert")
 
     custom_theme = self.params.get_bool("CustomTheme")
     custom_sounds = self.params.get_int("CustomSounds") if custom_theme else 0
     frog_sounds = custom_sounds == 1
-    self.goat_scream = self.params.get_bool("GoatScream") and frog_sounds
+    self.goat_scream = frog_sounds and self.params.get_bool("GoatScream")
 
-    self.frogpilot_variables.experimental_mode_via_lkas = self.params.get_bool("ExperimentalModeViaLKAS") and self.params.get_bool("ExperimentalModeActivation")
+    experimental_mode_activation = self.params.get_bool("ExperimentalModeActivation")
+    self.frogpilot_variables.experimental_mode_via_lkas = experimental_mode_activation and self.params.get_bool("ExperimentalModeViaLKAS")
 
     lateral_tune = self.params.get_bool("LateralTune")
-    self.force_auto_tune = self.params.get_float("ForceAutoTune") and lateral_tune
+    self.force_auto_tune = lateral_tune and self.params.get_float("ForceAutoTune")
     stock_steer_ratio = self.params.get_float("SteerRatioStock")
     self.steer_ratio = self.params.get_float("SteerRatio") if lateral_tune else stock_steer_ratio
     self.use_custom_steer_ratio = self.steer_ratio != stock_steer_ratio
@@ -1169,7 +1170,7 @@ class Controls:
     self.frogpilot_variables.long_pitch = self.params.get_bool("LongPitch")
 
     longitudinal_tune = self.params.get_bool("LongitudinalTune")
-    self.frogpilot_variables.sport_plus = self.params.get_int("AccelerationProfile") == 3 and longitudinal_tune
+    self.frogpilot_variables.sport_plus = longitudinal_tune and self.params.get_int("AccelerationProfile") == 3
 
     self.lane_detection = self.params.get_bool("LaneDetection") and self.params.get_bool("NudgelessLaneChange")
     self.lane_detection_width = self.params.get_int("LaneDetectionWidth") * (1 if self.is_metric else CV.FOOT_TO_METER) / 10 if self.lane_detection else 0
@@ -1179,18 +1180,18 @@ class Controls:
 
     quality_of_life = self.params.get_bool("QOLControls")
     self.pause_lateral_on_signal = self.params.get_int("PauseLateralOnSignal") * (CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS) if quality_of_life else 0
-    self.frogpilot_variables.reverse_cruise_increase = self.params.get_bool("ReverseCruise") and quality_of_life
+    self.frogpilot_variables.reverse_cruise_increase = quality_of_life and self.params.get_bool("ReverseCruise")
     self.frogpilot_variables.set_speed_offset = self.params.get_int("SetSpeedOffset") * (1 if self.is_metric else CV.MPH_TO_KPH) if quality_of_life else 0
 
     self.random_events = self.params.get_bool("RandomEvents")
     self.frogpilot_variables.use_ev_tables = self.params.get_bool("EVTable")
 
     self.speed_limit_controller = self.params.get_bool("SpeedLimitController")
-    self.frogpilot_variables.set_speed_limit = self.params.get_bool("SetSpeedLimit") and self.speed_limit_controller
-    self.speed_limit_alert = self.params.get_bool("SpeedLimitChangedAlert") and self.speed_limit_controller
-    self.speed_limit_confirmation = self.params.get_bool("SLCConfirmation") and self.speed_limit_controller
-    self.speed_limit_confirmation_lower = self.params.get_bool("SLCConfirmationLower") and self.speed_limit_confirmation
-    self.speed_limit_confirmation_higher = self.params.get_bool("SLCConfirmationHigher") and self.speed_limit_confirmation
+    self.frogpilot_variables.set_speed_limit = self.speed_limit_controller and self.params.get_bool("SetSpeedLimit")
+    self.speed_limit_alert = self.speed_limit_controller and self.params.get_bool("SpeedLimitChangedAlert")
+    self.speed_limit_confirmation = self.speed_limit_controller and self.params.get_bool("SLCConfirmation")
+    self.speed_limit_confirmation_lower = self.speed_limit_confirmation and self.params.get_bool("SLCConfirmationLower")
+    self.speed_limit_confirmation_higher = self.speed_limit_confirmation and self.params.get_bool("SLCConfirmationHigher")
 
 def main():
   controls = Controls()

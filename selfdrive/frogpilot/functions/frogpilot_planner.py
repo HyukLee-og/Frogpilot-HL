@@ -198,29 +198,29 @@ class FrogPilotPlanner:
       params.put_bool("ExperimentalMode", True)
 
     custom_alerts = params.get_bool("CustomAlerts")
-    self.green_light_alert = params.get_bool("GreenLightAlert") and custom_alerts
+    self.green_light_alert = custom_alerts and params.get_bool("GreenLightAlert")
 
     self.custom_personalities = params.get_bool("CustomPersonalities")
-    self.aggressive_follow = params.get_float("AggressiveFollow")
-    self.standard_follow = params.get_float("StandardFollow")
-    self.relaxed_follow = params.get_float("RelaxedFollow")
-    self.aggressive_jerk = params.get_float("AggressiveJerk")
-    self.standard_jerk = params.get_float("StandardJerk")
-    self.relaxed_jerk = params.get_float("RelaxedJerk")
+    self.aggressive_follow = params.get_float("AggressiveFollow") if self.custom_personalities else 1.25
+    self.standard_follow = params.get_float("StandardFollow") if self.custom_personalities else 1.45
+    self.relaxed_follow = params.get_float("RelaxedFollow") if self.custom_personalities else 1.75
+    self.aggressive_jerk = params.get_float("AggressiveJerk") if self.custom_personalities else 0.5
+    self.standard_jerk = params.get_float("StandardJerk") if self.custom_personalities else 1.0
+    self.relaxed_jerk = params.get_float("RelaxedJerk") if self.custom_personalities else 1.0
 
     custom_ui = params.get_bool("CustomUI")
-    self.adjacent_lanes = params.get_bool("AdjacentPath") and custom_ui
-    self.blind_spot_path = params.get_bool("BlindSpotPath") and custom_ui
+    self.adjacent_lanes = custom_ui and params.get_bool("AdjacentPath")
+    self.blind_spot_path = custom_ui and params.get_bool("BlindSpotPath")
 
     nudgeless_lane_change = params.get_bool("NudgelessLaneChange")
-    self.lane_detection = params.get_bool("LaneDetection") and nudgeless_lane_change
+    self.lane_detection = nudgeless_lane_change and params.get_bool("LaneDetection")
 
     longitudinal_tune = params.get_bool("LongitudinalTune")
     self.acceleration_profile = params.get_int("AccelerationProfile") if longitudinal_tune else 0
     self.deceleration_profile = params.get_int("DecelerationProfile") if longitudinal_tune else 0
-    self.aggressive_acceleration = params.get_bool("AggressiveAcceleration") and longitudinal_tune
+    self.aggressive_acceleration = longitudinal_tune and params.get_bool("AggressiveAcceleration")
     self.increased_stopping_distance = params.get_int("StoppingDistance") * (1 if self.is_metric else CV.FOOT_TO_METER) if longitudinal_tune else 0
-    self.smoother_braking = params.get_bool("SmoothBraking") and longitudinal_tune
+    self.smoother_braking = longitudinal_tune and params.get_bool("SmoothBraking")
 
     self.map_turn_speed_controller = params.get_bool("MTSCEnabled")
     if self.map_turn_speed_controller:

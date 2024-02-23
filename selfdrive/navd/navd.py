@@ -465,8 +465,8 @@ class RouteEngine:
 
   def update_frogpilot_params(self):
     self.conditional_navigation = self.params.get_bool("CENavigation")
-    self.conditional_navigation_intersections = self.params.get_bool("CENavigationIntersections") and self.conditional_navigation
-    self.conditional_navigation_turns = self.params.get_bool("CENavigationTurns") and self.conditional_navigation
+    self.conditional_navigation_intersections = self.conditional_navigation and self.params.get_bool("CENavigationIntersections")
+    self.conditional_navigation_turns = self.conditional_navigation and self.params.get_bool("CENavigationTurns")
 
 def main():
   pm = messaging.PubMaster(['navInstruction', 'navRoute', 'frogpilotNavigation'])

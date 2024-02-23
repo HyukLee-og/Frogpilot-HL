@@ -325,15 +325,15 @@ void ui_update_frogpilot_params(UIState *s) {
   scene.conditional_speed_lead = params.getInt("CESpeedLead");
 
   bool custom_onroad_ui = params.getBool("CustomUI");
-  scene.acceleration_path = params.getBool("AccelerationPath") && custom_onroad_ui;
-  scene.adjacent_path = params.getBool("AdjacentPath") && custom_onroad_ui;
-  scene.adjacent_path_metrics = params.getBool("AdjacentPathMetrics") && scene.adjacent_path;
-  scene.blind_spot_path = params.getBool("BlindSpotPath") && custom_onroad_ui;
-  scene.fps_counter = params.getBool("FPSCounter") && custom_onroad_ui;
-  scene.lead_info = params.getBool("LeadInfo") && custom_onroad_ui;
-  scene.use_si = params.getBool("UseSI") && scene.lead_info;
-  scene.pedals_on_ui = params.getBool("PedalsOnUI") && custom_onroad_ui;
-  scene.road_name_ui = params.getBool("RoadNameUI") && custom_onroad_ui;
+  scene.acceleration_path = custom_onroad_ui && params.getBool("AccelerationPath");
+  scene.adjacent_path = custom_onroad_ui && params.getBool("AdjacentPath");
+  scene.adjacent_path_metrics = custom_onroad_ui && scene.adjacent_path && params.getBool("AdjacentPathMetrics");
+  scene.blind_spot_path = custom_onroad_ui && params.getBool("BlindSpotPath");
+  scene.fps_counter = custom_onroad_ui && params.getBool("FPSCounter");
+  scene.lead_info = custom_onroad_ui && params.getBool("LeadInfo");
+  scene.use_si = scene.lead_info && params.getBool("UseSI");
+  scene.pedals_on_ui = custom_onroad_ui && params.getBool("PedalsOnUI");
+  scene.road_name_ui = custom_onroad_ui && params.getBool("RoadNameUI");
 
   bool custom_theme = params.getBool("CustomTheme");
   scene.custom_colors = custom_theme ? params.getInt("CustomColors") : 0;
@@ -347,24 +347,24 @@ void ui_update_frogpilot_params(UIState *s) {
   scene.fahrenheit = params.getBool("Fahrenheit");
 
   scene.model_ui = params.getBool("ModelUI");
-  scene.dynamic_path_width = params.getBool("DynamicPathWidth") && scene.model_ui;
+  scene.dynamic_path_width = scene.model_ui && params.getBool("DynamicPathWidth");
   scene.lane_line_width = params.getInt("LaneLinesWidth") * (scene.is_metric ? 1.0f : INCH_TO_CM) / 200.0f;
   scene.path_edge_width = params.getInt("PathEdgeWidth");
   scene.path_width = params.getInt("PathWidth") / 10.0f * (scene.is_metric ? 1.0f : FOOT_TO_METER) / 2.0f;
   scene.road_edge_width = params.getInt("RoadEdgesWidth") * (scene.is_metric ? 1.0f : INCH_TO_CM) / 200.0f;
-  scene.unlimited_road_ui_length = params.getBool("UnlimitedLength") && scene.model_ui;
+  scene.unlimited_road_ui_length = scene.model_ui && params.getBool("UnlimitedLength");
 
   scene.numerical_temp = params.getBool("NumericalTemp");
 
   bool quality_of_life_controls = params.getBool("QOLControls");
-  scene.reverse_cruise = params.getBool("ReverseCruise") && quality_of_life_controls;
-  scene.reverse_cruise_ui = params.getBool("ReverseCruiseUI") && scene.reverse_cruise;
+  scene.reverse_cruise = quality_of_life_controls && params.getBool("ReverseCruise");
+  scene.reverse_cruise_ui = scene.reverse_cruise && params.getBool("ReverseCruiseUI");
 
   bool quality_of_life_visuals = params.getBool("QOLVisuals");
-  scene.full_map = params.getBool("FullMap") && quality_of_life_visuals;
-  scene.hide_speed = params.getBool("HideSpeed") && quality_of_life_visuals;
-  scene.hide_speed_ui = params.getBool("HideSpeedUI") && scene.hide_speed;
-  scene.wheel_speed = params.getBool("WheelSpeed") && quality_of_life_visuals;
+  scene.full_map = quality_of_life_visuals && params.getBool("FullMap");
+  scene.hide_speed = quality_of_life_visuals && params.getBool("HideSpeed");
+  scene.hide_speed_ui = scene.hide_speed && params.getBool("HideSpeedUI");
+  scene.wheel_speed = quality_of_life_visuals && params.getBool("WheelSpeed");
 
   scene.personalities_via_screen = params.getBool("PersonalitiesViaScreen") && params.getBool("AdjustablePersonalities");
   scene.random_events = params.getBool("RandomEvents");
@@ -372,9 +372,9 @@ void ui_update_frogpilot_params(UIState *s) {
   scene.screen_brightness = params.getInt("ScreenBrightness");
 
   scene.speed_limit_controller = params.getBool("SpeedLimitController");
-  scene.show_slc_offset = params.getBool("ShowSLCOffset") && scene.speed_limit_controller;
-  scene.show_slc_offset_ui = params.getBool("ShowSLCOffsetUI") && scene.speed_limit_controller;
-  scene.use_vienna_slc_sign = params.getBool("UseVienna") && scene.speed_limit_controller;
+  scene.show_slc_offset = scene.speed_limit_controller && params.getBool("ShowSLCOffset");
+  scene.show_slc_offset_ui = scene.speed_limit_controller && params.getBool("ShowSLCOffsetUI");
+  scene.use_vienna_slc_sign = scene.speed_limit_controller && params.getBool("UseVienna");
 
   scene.wheel_icon = params.getInt("WheelIcon");
 }
