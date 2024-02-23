@@ -4,7 +4,6 @@ import numpy as np
 from openpilot.common.conversions import Conversions as CV
 from openpilot.common.numpy_fast import clip
 from openpilot.selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
-from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import STOP_DISTANCE
 from openpilot.selfdrive.controls.lib.longitudinal_planner import A_CRUISE_MIN, get_max_accel
 
 from openpilot.selfdrive.frogpilot.functions.frogpilot_functions import FrogPilotFunctions
@@ -33,7 +32,6 @@ class FrogPilotPlanner:
     self.mtsc_target = 0
     self.road_curvature = 0
     self.slc_target = 0
-    self.stopping_distance = 0
     self.v_cruise = 0
     self.vtsc_target = 0
 
@@ -68,7 +66,7 @@ class FrogPilotPlanner:
 
     # Conditional Experimental Mode
     if self.conditional_experimental_mode and self.CP.openpilotLongitudinalControl or self.green_light_alert and carState.standstill:
-      self.cem.update(carState, enabled, sm['frogpilotNavigation'], modelData, mpc, sm['radarState'], self.road_curvature, self.stopping_distance, v_ego)
+      self.cem.update(carState, enabled, sm['frogpilotNavigation'], modelData, sm['radarState'], self.road_curvature, mpc.t_follow, v_ego)
 
     # Update the max allowed speed
     self.v_cruise = self.update_v_cruise(carState, controlsState, enabled, modelData, v_cruise, v_ego)
@@ -84,9 +82,6 @@ class FrogPilotPlanner:
 
     # Update the current road curvature
     self.road_curvature = self.fpf.road_curvature(modelData, v_ego)
-
-    # Update the current stopping distance
-    self.stopping_distance = self.increased_stopping_distance + STOP_DISTANCE
 
   def update_v_cruise(self, carState, controlsState, enabled, modelData, v_cruise, v_ego):
     # Offset to adjust the max speed to match the cluster
