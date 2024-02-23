@@ -433,6 +433,9 @@ def main() -> None:
   if os.getenv("PREPAREONLY") is not None:
     return
 
+  # Start UI early so prepare can happen in the background
+  managed_processes['ui'].start()
+
   # SystemExit on sigterm
   signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(1))
 
