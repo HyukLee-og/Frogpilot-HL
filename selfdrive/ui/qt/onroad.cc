@@ -532,14 +532,14 @@ void AnnotatedCameraWidget::updateState(const UIState &s) {
   speed *= s.scene.is_metric ? MS_TO_KPH : MS_TO_MPH;
 
   auto speed_limit_sign = nav_instruction.getSpeedLimitSign();
-  speedLimit = slcOverridden ? scene.speed_limit_overridden_speed : slcSpeedLimit != 0 ? slcSpeedLimit : nav_alive ? nav_instruction.getSpeedLimit() : 0.0;
+  speedLimit = slcOverridden ? scene.speed_limit_overridden_speed : speedLimitController ? slcSpeedLimit : nav_alive ? nav_instruction.getSpeedLimit() : 0.0;
   speedLimit *= (s.scene.is_metric ? MS_TO_KPH : MS_TO_MPH);
-  if (slcSpeedLimit != 0 && !slcOverridden) {
+  if (speedLimitController && !slcOverridden) {
     speedLimit = speedLimit - (showSLCOffset ? slcSpeedLimitOffset : 0);
   }
 
-  has_us_speed_limit = (nav_alive && speed_limit_sign == cereal::NavInstruction::SpeedLimitSign::MUTCD) || (slcSpeedLimit != 0 && !useViennaSLCSign);
-  has_eu_speed_limit = (nav_alive && speed_limit_sign == cereal::NavInstruction::SpeedLimitSign::VIENNA) || (slcSpeedLimit != 0 && useViennaSLCSign);
+  has_us_speed_limit = (nav_alive && speed_limit_sign == cereal::NavInstruction::SpeedLimitSign::MUTCD) || (speedLimitController && !useViennaSLCSign);
+  has_eu_speed_limit = (nav_alive && speed_limit_sign == cereal::NavInstruction::SpeedLimitSign::VIENNA) || (speedLimitController && useViennaSLCSign);
   is_metric = s.scene.is_metric;
   speedUnit =  s.scene.is_metric ? tr("km/h") : tr("mph");
   hideBottomIcons = (cs.getAlertSize() != cereal::ControlsState::AlertSize::NONE || customSignals && (turnSignalLeft || turnSignalRight)) || fullMapOpen || showDriverCamera;
@@ -572,7 +572,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
   p.fillRect(0, 0, width(), UI_HEADER_HEIGHT, bg);
 
   QString speedLimitStr = (speedLimit > 1) ? QString::number(std::nearbyint(speedLimit)) : "–";
-  QString speedLimitOffsetStr = (showSLCOffset) ? "+" + QString::number(std::nearbyint(slcSpeedLimitOffset)) : "–";
+  QString speedLimitOffsetStr = (slcSpeedLimitOffset > 1) ? "+" + QString::number(std::nearbyint(slcSpeedLimitOffset)) : "–";
   QString speedStr = QString::number(std::nearbyint(speed));
   QString setSpeedStr = is_cruise_set ? QString::number(std::nearbyint(setSpeed - cruiseAdjustment)) : "–";
 
@@ -1227,11 +1227,11 @@ void AnnotatedCameraWidget::updateFrogPilotWidgets(QPainter &p) {
 
   showDriverCamera = scene.show_driver_camera;
 
-  showSLCOffset = scene.show_slc_offset;
-  slcOverridden = scene.speed_limit_overridden;
+  speedLimitController = scene.speed_limit_controller;
+  showSLCOffset = speedLimitController && scene.show_slc_offset;
+  slcOverridden = speedLimitController && scene.speed_limit_overridden;
   slcSpeedLimit = scene.speed_limit;
   slcSpeedLimitOffset = scene.speed_limit_offset * (is_metric ? MS_TO_KPH : MS_TO_MPH);
-  unconfirmedSLCSpeedLimit = scene.unconfirmed_speed_limit * (is_metric ? MS_TO_KPH : MS_TO_MPH);
   useViennaSLCSign = scene.use_vienna_slc_sign;
 
   turnSignalLeft = scene.turn_signal_left;
@@ -1614,7 +1614,7 @@ void AnnotatedCameraWidget::drawSLCConfirmation(QPainter &p) {
 
   // Configure the text
   QString unitText = is_metric ? "kph" : "mph";
-  QString speedText = QString::number(std::nearbyint(unconfirmedSLCSpeedLimit)) + " " + unitText;
+  QString speedText = QString::number(std::nearbyint(scene.unconfirmed_speed_limit * (is_metric ? MS_TO_KPH : MS_TO_MPH))) + " " + unitText;
   QString confirmText = "Confirm speed limit\n" + speedText;
   QString ignoreText = "Ignore speed limit\n" + speedText;
 

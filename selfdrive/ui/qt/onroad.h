@@ -220,6 +220,7 @@ private:
   bool showDriverCamera;
   bool showSLCOffset;
   bool slcOverridden;
+  bool speedLimitController;
   bool turnSignalLeft;
   bool turnSignalRight;
   bool useViennaSLCSign;
@@ -232,7 +233,6 @@ private:
   float slcSpeedLimit;
   float slcSpeedLimitOffset;
   float speedConversion;
-  float unconfirmedSLCSpeedLimit;
 
   int bearingDeg;
   int cameraView;
