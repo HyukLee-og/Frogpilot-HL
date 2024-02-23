@@ -181,6 +181,7 @@ class Controls:
 
     self.driving_gear = False
     self.fcw_random_event_triggered = False
+    self.frogpilot_variables.disable_reverse_cruise_increase = False
     self.openpilot_crashed = False
     self.previously_enabled = False
     self.random_event_triggered = False
@@ -189,6 +190,7 @@ class Controls:
 
     self.previous_lead_distance = 0
     self.previous_speed_limit = SpeedLimitController.desired_speed_limit
+    self.previous_v_cruise_cluster_kph = 0
     self.random_event_timer = 0
 
     ignore = self.sensor_packets + ['testJoystick']
@@ -815,6 +817,15 @@ class Controls:
         self.random_event_triggered = False
         self.random_event_timer = 0
         self.params_memory.remove("CurrentRandomEvent")
+
+    # Disable reverse cruise increase on long press for PCM vehicles
+    if self.frogpilot_variables.reverse_cruise_increase and self.CP.pcmCruise and self.sm.frame % 50 == 0:
+      if abs(self.v_cruise_helper.v_cruise_cluster_kph - self.previous_v_cruise_cluster_kph) > 5:
+        self.frogpilot_variables.disable_reverse_cruise_increase = True
+      else:
+        self.frogpilot_variables.disable_reverse_cruise_increase = False
+
+      self.previous_v_cruise_cluster_kph = self.v_cruise_helper.v_cruise_cluster_kph
 
     # Update Experimental Mode
     if self.frogpilot_variables.conditional_experimental_mode:
