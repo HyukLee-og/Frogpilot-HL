@@ -196,6 +196,8 @@ class FrogPilotPlanner:
 
     custom_alerts = params.get_bool("CustomAlerts")
     self.green_light_alert = custom_alerts and params.get_bool("GreenLightAlert")
+    if self.green_light_alert and not self.conditional_experimental_mode:
+      self.cem.update_frogpilot_params(self.is_metric, params)
 
     self.custom_personalities = params.get_bool("CustomPersonalities")
     self.aggressive_follow = params.get_float("AggressiveFollow") if self.custom_personalities else 1.25
