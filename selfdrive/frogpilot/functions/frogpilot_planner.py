@@ -159,7 +159,9 @@ class FrogPilotPlanner:
     else:
       self.vtsc_target = v_cruise
 
-    return min(self.mtsc_target, max(self.overridden_speed, self.slc_target) - v_ego_diff, self.vtsc_target, v_cruise)
+    targets = [self.mtsc_target, max(self.overridden_speed, self.slc_target) - v_ego_diff, self.vtsc_target, v_cruise]
+    filtered_targets = [target for target in targets if target != 0]
+    return min(filtered_targets)
 
   def publish(self, sm, pm, mpc):
     frogpilot_plan_send = messaging.new_message('frogpilotPlan')
