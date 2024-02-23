@@ -119,10 +119,10 @@ class FrogPilotPlanner:
         self.slc_target = unconfirmed_slc_target
 
       # Override SLC upon gas pedal press and reset upon brake/cancel button
-      self.override_slc |= carState.gasPressed
+      self.override_slc &= self.overridden_speed > self.slc_target
+      self.override_slc |= carState.gasPressed and v_ego > self.slc_target
       self.override_slc &= self.speed_limit_controller_override
-      self.override_slc &= enabled
-      self.override_slc &= v_ego > self.slc_target
+      self.override_slc &= enabled and not carState.standstill
 
       # Use the override speed if SLC is being overridden
       if self.override_slc:
