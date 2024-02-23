@@ -3,6 +3,8 @@ from openpilot.common.numpy_fast import interp
 
 from openpilot.selfdrive.frogpilot.functions.frogpilot_functions import MovingAverageCalculator
 
+from openpilot.selfdrive.frogpilot.functions.speed_limit_controller import SpeedLimitController
+
 # Constants
 PROBABILITY = 0.6  # 60% chance of condition being true
 
@@ -66,6 +68,11 @@ class ConditionalExperimentalMode:
     # Navigation check
     if self.navigation and modelData.navEnabled and frogpilotNavigation.navigationConditionMet and (self.navigation_lead or not self.lead_detected):
       self.status_value = 5
+      return True
+
+    # Speed Limit Controller check
+    if SpeedLimitController.experimental_mode:
+      self.status_value = 6
       return True
 
     # Speed check
