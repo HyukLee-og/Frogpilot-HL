@@ -19,7 +19,8 @@ struct FrogPilotDeviceState @0xaedffd8f31e7b55d {
 }
 
 struct FrogPilotNavigation @0xf35cc4560bbf6ec2 {
-  navigationConditionMet @0 :Bool;
+  approachingIntersection @0 :Bool;
+  approachingTurn @1 :Bool;
 }
 
 struct FrogPilotPlan @0xda96579883444c35 {

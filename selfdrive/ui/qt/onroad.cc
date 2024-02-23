@@ -1722,14 +1722,15 @@ void AnnotatedCameraWidget::drawStatusBar(QPainter &p) {
     {2, "Experimental Mode manually activated"},
     {3, "Conditional Experimental overridden"},
     {4, "Experimental Mode manually activated"},
-    {5, "Experimental Mode activated for navigation" + (mapOpen ? "" : QString(" instructions input"))},
-    {6, "Experimental Mode activated due to" + (mapOpen ? "SLC" : QString(" no speed limit set"))},
-    {7, "Experimental Mode activated due to" + (mapOpen ? " speed" : " speed being less than " + QString::number(conditionalSpeedLead) + (is_metric ? " kph" : " mph"))},
-    {8, "Experimental Mode activated due to" + (mapOpen ? " speed" : " speed being less than " + QString::number(conditionalSpeed) + (is_metric ? " kph" : " mph"))},
-    {9, "Experimental Mode activated for slower lead"},
-    {10, "Experimental Mode activated for turn" + (mapOpen ? "" : QString(" / lane change"))},
-    {11, "Experimental Mode activated for curve"},
-    {12, "Experimental Mode activated for stop" + (mapOpen ? "" : QString(" sign / stop light"))},
+    {5, "Experimental Mode activated for" + (mapOpen ? " intersection" : QString(" upcoming intersection"))},
+    {6, "Experimental Mode activated for" + (mapOpen ? " turn" : QString(" upcoming turn"))},
+    {7, "Experimental Mode activated due to" + (mapOpen ? "SLC" : QString(" no speed limit set"))},
+    {8, "Experimental Mode activated due to" + (mapOpen ? " speed" : " speed being less than " + QString::number(conditionalSpeedLead) + (is_metric ? " kph" : " mph"))},
+    {9, "Experimental Mode activated due to" + (mapOpen ? " speed" : " speed being less than " + QString::number(conditionalSpeed) + (is_metric ? " kph" : " mph"))},
+    {10, "Experimental Mode activated for slower lead"},
+    {11, "Experimental Mode activated for turn" + (mapOpen ? "" : QString(" / lane change"))},
+    {12, "Experimental Mode activated for curve"},
+    {13, "Experimental Mode activated for stop" + (mapOpen ? "" : QString(" sign / stop light"))},
   };
 
   QString roadName = roadNameUI ? QString::fromStdString(paramsMemory.get("RoadName")) : QString();

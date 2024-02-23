@@ -66,38 +66,38 @@ class ConditionalExperimentalMode:
       return self.experimental_mode
 
     # Navigation check
-    if self.navigation and modelData.navEnabled and frogpilotNavigation.navigationConditionMet and (self.navigation_lead or not self.lead_detected):
-      self.status_value = 5
+    if self.navigation and modelData.navEnabled and (frogpilotNavigation.approachingIntersection or frogpilotNavigation.approachingTurn) and (self.navigation_lead or not self.lead_detected):
+      self.status_value = 5 if frogpilotNavigation.approachingIntersection else 6
       return True
 
     # Speed Limit Controller check
     if SpeedLimitController.experimental_mode:
-      self.status_value = 6
+      self.status_value = 7
       return True
 
     # Speed check
     if (not self.lead_detected and v_ego <= self.limit) or (self.lead_detected and v_ego <= self.limit_lead):
-      self.status_value = 7 if self.lead_detected else 8
+      self.status_value = 8 if self.lead_detected else 9
       return True
 
     # Slower lead check
     if self.slower_lead and self.slower_lead_detected:
-      self.status_value = 9
+      self.status_value = 10
       return True
 
     # Turn signal check
     if self.signal and v_ego <= CITY_SPEED_LIMIT and (carState.leftBlinker or carState.rightBlinker):
-      self.status_value = 10
+      self.status_value = 11
       return True
 
     # Road curvature check
     if self.curves and self.curve_detected:
-      self.status_value = 11
+      self.status_value = 12
       return True
 
     # Stop sign and light check
     if self.stop_lights and self.red_light_detected:
-      self.status_value = 12
+      self.status_value = 13
       return True
 
     return False
