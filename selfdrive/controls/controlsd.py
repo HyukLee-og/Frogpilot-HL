@@ -178,6 +178,8 @@ class Controls:
     self.driving_gear = False
     self.stopped_for_light_previously = False
 
+    self.previous_lead_distance = 0
+
     ignore = self.sensor_packets + ['testJoystick']
     if SIMULATION:
       ignore += ['driverCameraState', 'managerState']
@@ -541,6 +543,20 @@ class Controls:
 
       if green_light:
         self.events.add(EventName.greenLight)
+
+    # Lead departing alert
+    if self.lead_departing_alert and self.sm.frame % 50 == 0:
+      lead = self.sm['radarState'].leadOne
+      lead_distance = lead.dRel
+      lead_departing = lead_distance - self.previous_lead_distance > 0.5 and self.previous_lead_distance != 0 and CS.standstill
+      self.previous_lead_distance = lead_distance
+
+      lead_departing &= not CS.gasPressed
+      lead_departing &= lead.vLead > 1
+      lead_departing &= self.driving_gear
+
+      if lead_departing:
+        self.events.add(EventName.leadDeparting)
 
   def data_sample(self):
     """Receive data from sockets and update carState"""
@@ -1029,6 +1045,7 @@ class Controls:
 
     custom_alerts = self.params.get_bool("CustomAlerts")
     self.green_light_alert = self.params.get_bool("GreenLightAlert") and custom_alerts
+    self.lead_departing_alert = self.params.get_bool("LeadDepartingAlert") and custom_alerts
 
     custom_theme = self.params.get_bool("CustomTheme")
     custom_sounds = self.params.get_int("CustomSounds") if custom_theme else 0
