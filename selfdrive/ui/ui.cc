@@ -232,10 +232,8 @@ static void update_state(UIState *s) {
       scene.show_driver_camera = carState.getGearShifter() == cereal::CarState::GearShifter::REVERSE;
     }
     if (scene.pedals_on_ui) {
-      scene.acceleration = scene.enabled ? carState.getAEgo() : 0;
-      scene.brake_pressed = carState.getBrakePressed() && scene.always_on_lateral_active;
-      scene.gas_pressed = carState.getGasPressed() && scene.always_on_lateral_active;
-      scene.standstill = carState.getStandstill() && carState.getGearShifter() != cereal::CarState::GearShifter::PARK;
+      scene.acceleration = carState.getAEgo();
+      scene.standstill = carState.getStandstill();
     }
     if (scene.rotating_wheel) {
       scene.steering_angle_deg = carState.getSteeringAngleDeg();

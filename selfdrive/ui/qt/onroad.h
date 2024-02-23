@@ -116,9 +116,7 @@ private:
   UIScene &scene;
 
   bool accelerating;
-  bool brakePressed;
   bool decelerating;
-  bool gasPressed;
 
   float acceleration;
 };

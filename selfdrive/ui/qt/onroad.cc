@@ -1561,13 +1561,11 @@ PedalIcons::PedalIcons(QWidget *parent) : QWidget(parent), scene(uiState()->scen
 
 void PedalIcons::updateState() {
   acceleration = scene.acceleration;
-  brakePressed = scene.brake_pressed;
-  gasPressed = scene.gas_pressed;
 
-  accelerating = acceleration > 0.2;
-  decelerating = acceleration < -0.2;
+  accelerating = acceleration > 0.25;
+  decelerating = acceleration < -0.25;
 
-  if (accelerating || brakePressed || decelerating || gasPressed) {
+  if (accelerating || decelerating) {
     update();
   }
 }
@@ -1582,8 +1580,8 @@ void PedalIcons::paintEvent(QPaintEvent *event) {
   int brakeX = startX + img_size / 2;
   int gasX = startX + img_size;
 
-  float brakeOpacity = brakePressed || scene.standstill ? 1.0f : decelerating ? std::max(0.2f, std::abs(acceleration)) : 0.2f;
-  float gasOpacity = gasPressed ? 1.0f : accelerating ? std::max(0.2f, acceleration) : 0.2f;
+  float brakeOpacity = scene.standstill ? 1.0f : decelerating ? std::max(0.25f, std::abs(acceleration)) : 0.25f;
+  float gasOpacity = accelerating ? std::max(0.25f, acceleration) : 0.25f;
 
   p.setOpacity(brakeOpacity);
   p.drawPixmap(brakeX, (height() - img_size) / 2, brake_pedal_img);
