@@ -23,7 +23,7 @@ class ConditionalExperimentalMode:
     self.curve_detected = False
     self.experimental_mode = False
     self.lead_detected = False
-    self.lead_slowing_down = False
+    self.lead_stopping = False
     self.red_light_detected = False
     self.slower_lead_detected = False
 
@@ -103,33 +103,33 @@ class ConditionalExperimentalMode:
     return False
 
   def update_conditions(self, modelData, mpc, radarState, road_curvature, stopping_distance, v_ego):
-    v_lead = radarState.leadOne.vLead
+    lead = radarState.leadOne
+    v_lead = lead.vLead
 
-    self.lead_detection(radarState)
+    self.lead_detection(lead)
+    self.lead_slowing_down(lead, stopping_distance, v_lead)
     self.road_curvature(road_curvature)
-    self.slow_lead(mpc, radarState, v_ego, v_lead)
+    self.slow_lead(lead, mpc, v_ego, v_lead)
     self.stop_sign_and_light(modelData, v_ego)
-    self.v_lead_slowing_down(radarState, stopping_distance, v_lead)
 
   # Lead detection
-  def lead_detection(self, radarState):
-    self.lead_detection_mac.add_data(radarState.leadOne.status)
+  def lead_detection(self, lead):
+    self.lead_detection_mac.add_data(lead.status)
     self.lead_detected = self.lead_detection_mac.get_moving_average() >= PROBABILITY
 
-  def v_lead_slowing_down(self, radarState, stopping_distance, v_lead):
-    # Check to make sure the lead isn't crossing the intersection
+  def lead_slowing_down(self, lead, stopping_distance, v_lead):
     if self.lead_detected:
-      lead_close = radarState.leadOne.dRel - 1 <= stopping_distance
+      lead_close = lead.dRel - 1 <= stopping_distance
       lead_slowing_down = v_lead < self.previous_v_lead
       lead_stopped = v_lead <= 0
 
       self.previous_v_lead = v_lead
 
       self.lead_slowing_down_mac.add_data(lead_close or lead_slowing_down or lead_stopped)
-      self.lead_slowing_down = self.lead_slowing_down_mac.get_moving_average() >= PROBABILITY
+      self.lead_stopping = self.lead_slowing_down_mac.get_moving_average() >= PROBABILITY
     else:
       self.lead_slowing_down_mac.reset_data()
-      self.lead_slowing_down = False
+      self.lead_stopping = False
       self.previous_v_lead = 0
 
   # Determine the road curvature - Credit goes to to Pfeiferj!
@@ -148,9 +148,9 @@ class ConditionalExperimentalMode:
       self.curve_detected = False
 
   # Slower lead detection - Credit goes to the DragonPilot team!
-  def slow_lead(self, mpc, radarState, v_ego, v_lead):
+  def slow_lead(self, lead, mpc, v_ego, v_lead):
     if self.lead_detected:
-      self.slow_lead_mac.add_data(radarState.leadOne.dRel < (v_ego - 1) * mpc.t_follow)
+      self.slow_lead_mac.add_data(lead.dRel < (v_ego - 1) * mpc.t_follow)
       self.slower_lead_detected = self.slow_lead_mac.get_moving_average() >= PROBABILITY
     else:
       self.slow_lead_mac.reset_data()
@@ -158,24 +158,33 @@ class ConditionalExperimentalMode:
 
   # Stop sign/stop light detection - Credit goes to the DragonPilot team!
   def stop_sign_and_light(self, modelData, v_ego):
-    lead_check = self.stop_lights_lead or not self.lead_slowing_down
+    lead_check = self.stop_lights_lead or not self.lead_stopping
 
     # Check if the model data is consistent and wants to stop
     model_check = len(modelData.orientation.x) == len(modelData.position.x) == TRAJECTORY_SIZE
     model_stopping = modelData.position.x[TRAJECTORY_SIZE - 1] < interp(v_ego * CV.MS_TO_KPH, SLOW_DOWN_BP, SLOW_DOWN_DISTANCE)
 
-    self.slow_down_mac.add_data(lead_check and model_check and model_stopping and not self.curve_detected and not self.slower_lead_detected)
+    # Filter out any other reasons the model may want to slow down
+    model_filtered = not (self.curve_detected or self.slower_lead_detected)
+
+    self.slow_down_mac.add_data(lead_check and model_check and model_stopping and model_filtered)
     self.red_light_detected = self.slow_down_mac.get_moving_average() >= PROBABILITY
 
   def update_frogpilot_params(self, is_metric, params):
     self.curves = params.get_bool("CECurves")
     self.curves_lead = params.get_bool("CECurvesLead")
+
     self.experimental_mode_via_press = params.get_bool("ExperimentalModeActivation")
+
     self.limit = params.get_int("CESpeed") * (CV.KPH_TO_MS if is_metric else CV.MPH_TO_MS)
     self.limit_lead = params.get_int("CESpeedLead") * (CV.KPH_TO_MS if is_metric else CV.MPH_TO_MS)
+
     self.navigation = params.get_bool("CENavigation")
     self.navigation_lead = params.get_bool("CENavigationLead")
+
     self.signal = params.get_bool("CESignal")
+
     self.slower_lead = params.get_bool("CESlowerLead")
+
     self.stop_lights = params.get_bool("CEStopLights")
     self.stop_lights_lead = params.get_bool("CEStopLightsLead")
