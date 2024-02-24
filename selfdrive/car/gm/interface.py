@@ -113,8 +113,8 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.deadzoneBP = [0.]
     ret.longitudinalTuning.deadzoneV = [0.15]
 
-    ret.longitudinalTuning.kpBP = [5., 35.]
-    ret.longitudinalTuning.kiBP = [0.]
+    ret.longitudinalTuning.kpBP = [0., 20., 40., 60.]
+    ret.longitudinalTuning.kiBP = [0., 20., 40., 60.]
 
     if candidate in CAMERA_ACC_CAR:
       ret.experimentalLongitudinalAvailable = candidate not in CC_ONLY_CAR
@@ -126,9 +126,9 @@ class CarInterface(CarInterfaceBase):
       ret.minSteerSpeed = 10 * CV.KPH_TO_MS
 
       # Tuning for experimental long
-      ret.longitudinalTuning.kpV = [2.0, 1.5]
-      ret.longitudinalTuning.kiV = [0.72]
-      ret.stoppingDecelRate = 2.0  # reach brake quickly after enabling
+      ret.longitudinalTuning.kpV = [0.75, 0.75, 0.75]
+      ret.longitudinalTuning.kiV = [.05, .07, .09]
+      ret.stoppingDecelRate = 0.2  # reach brake quickly after enabling
       ret.vEgoStopping = 0.25
       ret.vEgoStarting = 0.25
 
@@ -342,6 +342,15 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 5198. * CV.LB_TO_KG
       ret.centerToFront = ret.wheelbase * 0.4
       ret.steerRatio = 17.7
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+
+    elif candidate == CAR.TRAVERSE:
+      ret.mass = 2090.
+      ret.wheelbase = 3.073
+      ret.steerRatio = 17.3
+      ret.centerToFront = ret.wheelbase * 0.4
+      ret.tireStiffnessFactor = 1.0
+      ret.steerActuatorDelay = 0.2
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
     if ret.enableGasInterceptor:
